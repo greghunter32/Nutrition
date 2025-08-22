@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Nutrition Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .recipe-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+        }
+        
+        .nutrition-display {
+            background: #e8f5e8;
+            border-radius: 10px;
+            padding: 25px;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #4facfe;
+            padding-bottom: 10px;
+        }
+        
+        .recipe-controls {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .recipe-info {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        input, select, button {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+        
+        .ingredient-input {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+        
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        
+        .ingredients-list {
+            margin: 20px 0;
+        }
+        
+        .ingredient-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .nutrition-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .nutrition-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .macro-item, .micro-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .value {
+            font-weight: 600;
+            color: #4facfe;
+        }
+        
+        .per-serving {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .per-serving h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .serving-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .food-search {
+            position: relative;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .search-result {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .search-result:hover {
+            background: #f0f8ff;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .ingredient-input {
+                grid-template-columns: 1fr;
+            }
+            
+            .recipe-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🥗 Personal Nutrition Calculator</h1>
+            <p>Enter your recipe ingredients and get detailed nutritional analysis per serving</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="recipe-section">
+                <h2 class="section-title">Recipe Builder</h2>
+                
+                <div class="recipe-info">
+                    <input type="text" id="recipeName" placeholder="Recipe Name" value="My Recipe">
+                    <div class="serving-input">
+                        <label>Servings:</label>
+                        <input type="number" id="servings" value="4" min="1" max="20">
+                    </div>
+                </div>
+                
+                <div class="ingredient-input">
+                    <div class="food-search">
+                        <input type="text" id="foodSearch" placeholder="Search for food..." autocomplete="off">
+                        <div class="search-results" id="searchResults"></div>
+                    </div>
+                    <input type="number" id="quantity" placeholder="Amount" step="0.1" min="0">
+                    <select id="unit">
+                        <option value="g">grams</option>
+                        <option value="kg">kilograms</option>
+                        <option value="oz">ounces</option>
+                        <option value="lb">pounds</option>
+                        <option value="cup">cups</option>
+                        <option value="tbsp">tablespoons</option>
+                        <option value="tsp">teaspoons</option>
+                        <option value="ml">milliliters</option>
+                        <option value="l">liters</option>
+                        <option value="piece">pieces</option>
+                    </select>
+                    <button class="btn btn-small" onclick="addIngredient()">Add</button>
+                </div>
+                
+                <div class="ingredients-list" id="ingredientsList"></div>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn" onclick="calculateNutrition()">Calculate Nutrition</button>
+                    <button class="btn" onclick="clearRecipe()" style="margin-left: 10px;">Clear All</button>
+                </div>
+            </div>
+            
+            <div class="nutrition-display">
+                <h2 class="section-title">Nutritional Analysis</h2>
+                
+                <div class="per-serving">
+                    <h2>Per Serving</h2>
+                    <div class="serving-input">
+                        <span>Total servings:</span>
+                        <span id="totalServings">4</span>
+                    </div>
+                </div>
+                
+                <div class="nutrition-grid">
+                    <div class="nutrition-card">
+                        <h3>📊 Macronutrients</h3>
+                        <div id="macronutrients"></div>
+                    </div>
+                    
+                    <div class="nutrition-card">
+                        <h3>🔬 Key Micronutrients</h3>
+                        <div id="micronutrients"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive food database with nutritional information per 100g
+        const foodDatabase = {
+            // Proteins
+            'chicken breast': {
+                name: 'Chicken Breast (skinless)',
+                calories: 165, protein: 31, carbs: 0, fat: 3.6, fiber: 0,
+                calcium: 15, iron: 1, vitaminC: 0, vitaminA: 21
+            },
+            'salmon': {
+                name: 'Salmon (Atlantic)',
+                calories: 208, protein: 25.4, carbs: 0, fat: 12.4, fiber: 0,
+                calcium: 12, iron: 0.8, vitaminC: 0, vitaminA: 58
+            },
+            'eggs': {
+                name: 'Eggs (whole)',
+                calories: 155, protein: 13, carbs: 1.1, fat: 11, fiber: 0,
+                calcium: 56, iron: 1.8, vitaminC: 0, vitaminA: 540
+            },
+            'tofu': {
+                name: 'Tofu (firm)',
+                calories: 144, protein: 17.3, carbs: 2.8, fat: 8.7, fiber: 2.3,
+                calcium: 683, iron: 2.7, vitaminC: 0, vitaminA: 13
+            },
+            
+            // Carbohydrates
+            'rice': {
+                name: 'Rice (white, cooked)',
+                calories: 130, protein: 2.7, carbs: 28, fat: 0.3, fiber: 0.4,
+                calcium: 10, iron: 1.2, vitaminC: 0, vitaminA: 0
+            },
+            'quinoa': {
+                name: 'Quinoa (cooked)',
+                calories: 120, protein: 4.4, carbs: 22, fat: 1.9, fiber: 2.8,
+                calcium: 17, iron: 1.5, vitaminC: 0, vitaminA: 5
+            },
+            'oats': {
+                name: 'Oats (rolled, dry)',
+                calories: 389, protein: 16.9, carbs: 66.3, fat: 6.9, fiber: 10.6,
+                calcium: 54, iron: 4.7, vitaminC: 0, vitaminA: 0
+            },
+            'bread': {
+                name: 'Bread (whole wheat)',
+                calories: 247, protein: 13, carbs: 41, fat: 4.2, fiber: 7,
+                calcium: 107, iron: 2.5, vitaminC: 0, vitaminA: 0
+            },
+            
+            // Vegetables
+            'broccoli': {
+                name: 'Broccoli (raw)',
+                calories: 34, protein: 2.8, carbs: 7, fat: 0.4, fiber: 2.6,
+                calcium: 47, iron: 0.7, vitaminC: 89, vitaminA: 623
+            },
+            'spinach': {
+                name: 'Spinach (raw)',
+                calories: 23, protein: 2.9, carbs: 3.6, fat: 0.4, fiber: 2.2,
+                calcium: 99, iron: 2.7, vitaminC: 28, vitaminA: 9377
+            },
+            'carrots': {
+                name: 'Carrots (raw)',
+                calories: 41, protein: 0.9, carbs: 9.6, fat: 0.2, fiber: 2.8,
+                calcium: 33, iron: 0.3, vitaminC: 6, vitaminA: 16706
+            },
+            'tomatoes': {
+                name: 'Tomatoes (raw)',
+                calories: 18, protein: 0.9, carbs: 3.9, fat: 0.2, fiber: 1.2,
+                calcium: 10, iron: 0.3, vitaminC: 14, vitaminA: 833
+            },
+            'bell peppers': {
+                name: 'Bell Peppers (raw)',
+                calories: 31, protein: 1, carbs: 7, fat: 0.3, fiber: 2.5,
+                calcium: 7, iron: 0.4, vitaminC: 190, vitaminA: 3131
+            },
+            
+            // Fruits
+            'banana': {
+                name: 'Banana (raw)',
+                calories: 89, protein: 1.1, carbs: 23, fat: 0.3, fiber: 2.6,
+                calcium: 5, iron: 0.3, vitaminC: 9, vitaminA: 64
+            },
+            'apple': {
+                name: 'Apple (raw)',
+                calories: 52, protein: 0.3, carbs: 14, fat: 0.2, fiber: 2.4,
+                calcium: 6, iron: 0.1, vitaminC: 5, vitaminA: 54
+            },
+            'orange': {
+                name: 'Orange (raw)',
+                calories: 47, protein: 0.9, carbs: 12, fat: 0.1, fiber: 2.4,
+                calcium: 40, iron: 0.1, vitaminC: 53, vitaminA: 225
+            },
+            'blueberries': {
+                name: 'Blueberries (raw)',
+                calories: 57, protein: 0.7, carbs: 14, fat: 0.3, fiber: 2.4,
+                calcium: 6, iron: 0.3, vitaminC: 10, vitaminA: 54
+            },
+            
+            // Dairy
+            'milk': {
+                name: 'Milk (whole)',
+                calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3, fiber: 0,
+                calcium: 113, iron: 0.03, vitaminC: 0, vitaminA: 126
+            },
+            'greek yogurt': {
+                name: 'Greek Yogurt (plain)',
+                calories: 59, protein: 10, carbs: 3.6, fat: 0.4, fiber: 0,
+                calcium: 110, iron: 0.04, vitaminC: 0, vitaminA: 27
+            },
+            'cheese': {
+                name: 'Cheese (cheddar)',
+                calories: 403, protein: 25, carbs: 1.3, fat: 33, fiber: 0,
+                calcium: 721, iron: 0.7, vitaminC: 0, vitaminA: 1059
+            },
+            
+            // Nuts and Seeds
+            'almonds': {
+                name: 'Almonds (raw)',
+                calories: 579, protein: 21, carbs: 22, fat: 50, fiber: 12,
+                calcium: 269, iron: 3.7, vitaminC: 0, vitaminA: 2
+            },
+            'walnuts': {
+                name: 'Walnuts (raw)',
+                calories: 654, protein: 15, carbs: 14, fat: 65, fiber: 7,
+                calcium: 98, iron: 2.9, vitaminC: 1, vitaminA: 20
+            },
+            'chia seeds': {
+                name: 'Chia Seeds',
+                calories: 486, protein: 17, carbs: 42, fat: 31, fiber: 34,
+                calcium: 631, iron: 7.7, vitaminC: 2, vitaminA: 54
+            },
+            
+            // Fats and Oils
+            'olive oil': {
+                name: 'Olive Oil',
+                calories: 884, protein: 0, carbs: 0, fat: 100, fiber: 0,
+                calcium: 1, iron: 0.6, vitaminC: 0, vitaminA: 0
+            },
+            'avocado': {
+                name: 'Avocado (raw)',
+                calories: 160, protein: 2, carbs: 9, fat: 15, fiber: 7,
+                calcium: 12, iron: 0.6, vitaminC: 10, vitaminA: 146
+            }
+        };
+
+        let currentRecipe = [];
+
+        // Unit conversion to grams
+        const unitConversions = {
+            'g': 1,
+            'kg': 1000,
+            'oz': 28.35,
+            'lb': 453.59,
+            'cup': 240, // approximate for liquids, varies by ingredient
+            'tbsp': 15,
+            'tsp': 5,
+            'ml': 1, // approximate density of water
+            'l': 1000,
+            'piece': 100 // default weight for pieces
+        };
+
+        function setupFoodSearch() {
+            const searchInput = document.getElementById('foodSearch');
+            const searchResults = document.getElementById('searchResults');
+            
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                if (query.length < 2) {
+                    searchResults.style.display = 'none';
+                    return;
+                }
+                
+                const matches = Object.keys(foodDatabase).filter(food => 
+                    food.toLowerCase().includes(query)
+                ).slice(0, 8);
+                
+                if (matches.length > 0) {
+                    searchResults.innerHTML = matches.map(food => 
+                        `<div class="search-result" onclick="selectFood('${food}')">${foodDatabase[food].name}</div>`
+                    ).join('');
+                    searchResults.style.display = 'block';
+                } else {
+                    searchResults.style.display = 'none';
+                }
+            });
+            
+            // Hide results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.food-search')) {
+                    searchResults.style.display = 'none';
+                }
+            });
+        }
+
+        function selectFood(foodKey) {
+            document.getElementById('foodSearch').value = foodDatabase[foodKey].name;
+            document.getElementById('foodSearch').dataset.foodKey = foodKey;
+            document.getElementById('searchResults').style.display = 'none';
+        }
+
+        function addIngredient() {
+            const searchInput = document.getElementById('foodSearch');
+            const foodKey = searchInput.dataset.foodKey;
+            const quantity = parseFloat(document.getElementById('quantity').value);
+            const unit = document.getElementById('unit').value;
+            
+            if (!foodKey || !quantity) {
+                alert('Please select a food and enter a quantity');
+                return;
+            }
+            
+            const ingredient = {
+                food: foodKey,
+                name: foodDatabase[foodKey].name,
+                quantity: quantity,
+                unit: unit,
+                grams: quantity * unitConversions[unit]
+            };
+            
+            currentRecipe.push(ingredient);
+            updateIngredientsList();
+            
+            // Clear inputs
+            searchInput.value = '';
+            delete searchInput.dataset.foodKey;
+            document.getElementById('quantity').value = '';
+        }
+
+        function removeIngredient(index) {
+            currentRecipe.splice(index, 1);
+            updateIngredientsList();
+            calculateNutrition();
+        }
+
+        function updateIngredientsList() {
+            const list = document.getElementById('ingredientsList');
+            list.innerHTML = currentRecipe.map((ingredient, index) => `
+                <div class="ingredient-item">
+                    <span><strong>${ingredient.name}</strong> - ${ingredient.quantity} ${ingredient.unit} (${ingredient.grams.toFixed(1)}g)</span>
+                    <button class="btn btn-danger btn-small" onclick="removeIngredient(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function calculateNutrition() {
+            const servings = parseInt(document.getElementById('servings').value) || 1;
+            document.getElementById('totalServings').textContent = servings;
+            
+            if (currentRecipe.length === 0) {
+                document.getElementById('macronutrients').innerHTML = '<p>No ingredients added</p>';
+                document.getElementById('micronutrients').innerHTML = '<p>No ingredients added</p>';
+                return;
+            }
+            
+            // Calculate total nutrition
+            const totalNutrition = {
+                calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0,
+                calcium: 0, iron: 0, vitaminC: 0, vitaminA: 0
+            };
+            
+            currentRecipe.forEach(ingredient => {
+                const food = foodDatabase[ingredient.food];
+                const ratio = ingredient.grams / 100; // nutrition data is per 100g
+                
+                Object.keys(totalNutrition).forEach(nutrient => {
+                    totalNutrition[nutrient] += (food[nutrient] || 0) * ratio;
+                });
+            });
+            
+            // Calculate per serving
+            const perServing = {};
+            Object.keys(totalNutrition).forEach(nutrient => {
+                perServing[nutrient] = totalNutrition[nutrient] / servings;
+            });
+            
+            // Display macronutrients
+            document.getElementById('macronutrients').innerHTML = `
+                <div class="macro-item">
+                    <span>🔥 Calories</span>
+                    <span class="value">${Math.round(perServing.calories)}</span>
+                </div>
+                <div class="macro-item">
+                    <span>🥩 Protein</span>
+                    <span class="value">${perServing.protein.toFixed(1)}g</span>
+                </div>
+                <div class="macro-item">
+                    <span>🍞 Carbohydrates</span>
+                    <span class="value">${perServing.carbs.toFixed(1)}g</span>
+                </div>
+                <div class="macro-item">
+                    <span>🥑 Fat</span>
+                    <span class="value">${perServing.fat.toFixed(1)}g</span>
+                </div>
+                <div class="macro-item">
+                    <span>🌾 Fiber</span>
+                    <span class="value">${perServing.fiber.toFixed(1)}g</span>
+                </div>
+            `;
+            
+            // Display micronutrients
+            document.getElementById('micronutrients').innerHTML = `
+                <div class="micro-item">
+                    <span>🦴 Calcium</span>
+                    <span class="value">${Math.round(perServing.calcium)}mg</span>
+                </div>
+                <div class="micro-item">
+                    <span>🩸 Iron</span>
+                    <span class="value">${perServing.iron.toFixed(1)}mg</span>
+                </div>
+                <div class="micro-item">
+                    <span>🍊 Vitamin C</span>
+                    <span class="value">${Math.round(perServing.vitaminC)}mg</span>
+                </div>
+                <div class="micro-item">
+                    <span>👁️ Vitamin A</span>
+                    <span class="value">${Math.round(perServing.vitaminA)}IU</span>
+                </div>
+            `;
+        }
+
+        function clearRecipe() {
+            currentRecipe = [];
+            updateIngredientsList();
+            document.getElementById('macronutrients').innerHTML = '<p>No ingredients added</p>';
+            document.getElementById('micronutrients').innerHTML = '<p>No ingredients added</p>';
+        }
+
+        // Update servings display when changed
+        document.getElementById('servings').addEventListener('input', function() {
+            calculateNutrition();
+        });
+
+        // Initialize the app
+        setupFoodSearch();
+        calculateNutrition();
+    </script>
+</body>
+</html>
