@@ -234,14 +234,68 @@
             .main-content {
                 grid-template-columns: 1fr;
             }
-            
+
             .ingredient-input {
                 grid-template-columns: 1fr;
             }
-            
+
             .recipe-info {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* View toggle buttons */
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: 2px solid #4facfe;
+            color: #4facfe;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.25s ease;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(79, 172, 254, 0.1);
+        }
+
+        .toggle-btn.toggle-active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .view-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .serving-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 4px;
+        }
+
+        .serving-label {
+            font-weight: 500;
         }
     </style>
 </head>
@@ -295,21 +349,24 @@
             
             <div class="nutrition-display">
                 <h2 class="section-title">Nutritional Analysis</h2>
-                
+
                 <div class="per-serving">
-                    <h2>Per Serving</h2>
-                    <div class="serving-input">
-                        <span>Total servings:</span>
+                    <div class="serving-meta">
+                        <span class="serving-label">Servings in recipe:</span>
                         <span id="totalServings">4</span>
                     </div>
+                    <div class="view-toggle">
+                        <button id="btnPerServing" class="toggle-btn toggle-active" onclick="switchView('per-serving')">Per Serving</button>
+                        <button id="btnTotal" class="toggle-btn" onclick="switchView('total')">Total Recipe</button>
+                    </div>
                 </div>
-                
+
                 <div class="nutrition-grid">
                     <div class="nutrition-card">
                         <h3>📊 Macronutrients</h3>
                         <div id="macronutrients"></div>
                     </div>
-                    
+
                     <div class="nutrition-card">
                         <h3>🔬 Key Micronutrients</h3>
                         <div id="micronutrients"></div>
@@ -459,10 +516,299 @@
                 name: 'Avocado (raw)',
                 calories: 160, protein: 2, carbs: 9, fat: 15, fiber: 7,
                 calcium: 12, iron: 0.6, vitaminC: 10, vitaminA: 146
+            },
+
+            // More Proteins
+            'ground beef': {
+                name: 'Ground Beef (85% lean, cooked)',
+                calories: 215, protein: 26.1, carbs: 0, fat: 12.3, fiber: 0,
+                calcium: 18, iron: 2.5, vitaminC: 0, vitaminA: 0
+            },
+            'tuna canned': {
+                name: 'Tuna (canned in water)',
+                calories: 116, protein: 25.5, carbs: 0, fat: 1.0, fiber: 0,
+                calcium: 11, iron: 1.3, vitaminC: 0, vitaminA: 20
+            },
+            'turkey breast': {
+                name: 'Turkey Breast (cooked)',
+                calories: 135, protein: 30.1, carbs: 0, fat: 1.0, fiber: 0,
+                calcium: 11, iron: 1.1, vitaminC: 0, vitaminA: 5
+            },
+            'shrimp': {
+                name: 'Shrimp (cooked)',
+                calories: 99, protein: 24.0, carbs: 0.2, fat: 0.3, fiber: 0,
+                calcium: 70, iron: 0.5, vitaminC: 0, vitaminA: 54
+            },
+            'pork loin': {
+                name: 'Pork Loin (cooked)',
+                calories: 189, protein: 27.3, carbs: 0, fat: 8.3, fiber: 0,
+                calcium: 17, iron: 1.0, vitaminC: 0, vitaminA: 5
+            },
+            'lentils': {
+                name: 'Lentils (cooked)',
+                calories: 116, protein: 9.0, carbs: 20.1, fat: 0.4, fiber: 7.9,
+                calcium: 19, iron: 3.3, vitaminC: 1.5, vitaminA: 8
+            },
+            'black beans': {
+                name: 'Black Beans (cooked)',
+                calories: 132, protein: 8.9, carbs: 23.7, fat: 0.5, fiber: 8.7,
+                calcium: 27, iron: 2.1, vitaminC: 0, vitaminA: 6
+            },
+            'chickpeas': {
+                name: 'Chickpeas (cooked)',
+                calories: 164, protein: 8.9, carbs: 27.4, fat: 2.6, fiber: 7.6,
+                calcium: 49, iron: 2.9, vitaminC: 1.3, vitaminA: 27
+            },
+            'edamame': {
+                name: 'Edamame (cooked)',
+                calories: 121, protein: 11.9, carbs: 8.9, fat: 5.2, fiber: 5.2,
+                calcium: 60, iron: 2.3, vitaminC: 6.1, vitaminA: 49
+            },
+            'cottage cheese': {
+                name: 'Cottage Cheese (low-fat)',
+                calories: 72, protein: 12.4, carbs: 2.7, fat: 1.0, fiber: 0,
+                calcium: 83, iron: 0.1, vitaminC: 0, vitaminA: 37
+            },
+
+            // More Vegetables
+            'sweet potato': {
+                name: 'Sweet Potato (cooked)',
+                calories: 90, protein: 2.0, carbs: 20.7, fat: 0.1, fiber: 3.3,
+                calcium: 38, iron: 0.6, vitaminC: 19.6, vitaminA: 19218
+            },
+            'potato': {
+                name: 'Potato (baked, with skin)',
+                calories: 93, protein: 2.5, carbs: 21.1, fat: 0.1, fiber: 2.1,
+                calcium: 10, iron: 1.1, vitaminC: 12.4, vitaminA: 7
+            },
+            'kale': {
+                name: 'Kale (raw)',
+                calories: 49, protein: 4.3, carbs: 8.8, fat: 0.9, fiber: 3.6,
+                calcium: 150, iron: 1.5, vitaminC: 120, vitaminA: 9990
+            },
+            'cucumber': {
+                name: 'Cucumber (raw)',
+                calories: 15, protein: 0.7, carbs: 3.6, fat: 0.1, fiber: 0.5,
+                calcium: 16, iron: 0.3, vitaminC: 2.8, vitaminA: 105
+            },
+            'celery': {
+                name: 'Celery (raw)',
+                calories: 16, protein: 0.7, carbs: 3.0, fat: 0.2, fiber: 1.6,
+                calcium: 40, iron: 0.2, vitaminC: 3.1, vitaminA: 449
+            },
+            'mushrooms': {
+                name: 'Mushrooms (raw)',
+                calories: 22, protein: 3.1, carbs: 3.3, fat: 0.3, fiber: 1.0,
+                calcium: 3, iron: 0.5, vitaminC: 2.1, vitaminA: 0
+            },
+            'onion': {
+                name: 'Onion (raw)',
+                calories: 40, protein: 1.1, carbs: 9.3, fat: 0.1, fiber: 1.7,
+                calcium: 23, iron: 0.2, vitaminC: 7.4, vitaminA: 2
+            },
+            'garlic': {
+                name: 'Garlic (raw)',
+                calories: 149, protein: 6.4, carbs: 33.1, fat: 0.5, fiber: 2.1,
+                calcium: 181, iron: 1.7, vitaminC: 31.2, vitaminA: 9
+            },
+            'zucchini': {
+                name: 'Zucchini (raw)',
+                calories: 17, protein: 1.2, carbs: 3.1, fat: 0.3, fiber: 1.0,
+                calcium: 16, iron: 0.4, vitaminC: 17.9, vitaminA: 200
+            },
+            'asparagus': {
+                name: 'Asparagus (raw)',
+                calories: 20, protein: 2.2, carbs: 3.9, fat: 0.1, fiber: 2.1,
+                calcium: 24, iron: 2.1, vitaminC: 5.6, vitaminA: 756
+            },
+            'cauliflower': {
+                name: 'Cauliflower (raw)',
+                calories: 25, protein: 1.9, carbs: 5.0, fat: 0.3, fiber: 2.0,
+                calcium: 22, iron: 0.4, vitaminC: 48.2, vitaminA: 0
+            },
+            'corn': {
+                name: 'Corn (cooked)',
+                calories: 96, protein: 3.4, carbs: 21.0, fat: 1.5, fiber: 2.4,
+                calcium: 3, iron: 0.5, vitaminC: 6.8, vitaminA: 187
+            },
+            'peas': {
+                name: 'Peas (cooked)',
+                calories: 84, protein: 5.4, carbs: 15.6, fat: 0.2, fiber: 5.5,
+                calcium: 27, iron: 1.5, vitaminC: 14.2, vitaminA: 765
+            },
+            'brussels sprouts': {
+                name: 'Brussels Sprouts (raw)',
+                calories: 43, protein: 3.4, carbs: 9.0, fat: 0.3, fiber: 3.8,
+                calcium: 42, iron: 1.4, vitaminC: 85.0, vitaminA: 883
+            },
+            'cabbage': {
+                name: 'Cabbage (raw)',
+                calories: 25, protein: 1.3, carbs: 5.8, fat: 0.1, fiber: 2.5,
+                calcium: 40, iron: 0.5, vitaminC: 36.6, vitaminA: 98
+            },
+            'beet': {
+                name: 'Beet (raw)',
+                calories: 43, protein: 1.6, carbs: 9.6, fat: 0.2, fiber: 2.8,
+                calcium: 16, iron: 0.8, vitaminC: 4.9, vitaminA: 33
+            },
+
+            // More Fruits
+            'strawberries': {
+                name: 'Strawberries (raw)',
+                calories: 32, protein: 0.7, carbs: 7.7, fat: 0.3, fiber: 2.0,
+                calcium: 16, iron: 0.4, vitaminC: 58.8, vitaminA: 12
+            },
+            'grapes': {
+                name: 'Grapes (raw)',
+                calories: 69, protein: 0.7, carbs: 18.1, fat: 0.2, fiber: 0.9,
+                calcium: 10, iron: 0.4, vitaminC: 3.2, vitaminA: 66
+            },
+            'mango': {
+                name: 'Mango (raw)',
+                calories: 60, protein: 0.8, carbs: 15.0, fat: 0.4, fiber: 1.6,
+                calcium: 11, iron: 0.2, vitaminC: 36.4, vitaminA: 1082
+            },
+            'pineapple': {
+                name: 'Pineapple (raw)',
+                calories: 50, protein: 0.5, carbs: 13.1, fat: 0.1, fiber: 1.4,
+                calcium: 13, iron: 0.3, vitaminC: 47.8, vitaminA: 58
+            },
+            'watermelon': {
+                name: 'Watermelon (raw)',
+                calories: 30, protein: 0.6, carbs: 7.6, fat: 0.2, fiber: 0.4,
+                calcium: 7, iron: 0.2, vitaminC: 8.1, vitaminA: 569
+            },
+            'kiwi': {
+                name: 'Kiwi (raw)',
+                calories: 61, protein: 1.1, carbs: 14.7, fat: 0.5, fiber: 3.0,
+                calcium: 34, iron: 0.3, vitaminC: 92.7, vitaminA: 87
+            },
+            'pear': {
+                name: 'Pear (raw)',
+                calories: 57, protein: 0.4, carbs: 15.2, fat: 0.1, fiber: 3.1,
+                calcium: 9, iron: 0.2, vitaminC: 4.3, vitaminA: 25
+            },
+            'peach': {
+                name: 'Peach (raw)',
+                calories: 39, protein: 0.9, carbs: 9.5, fat: 0.3, fiber: 1.5,
+                calcium: 6, iron: 0.3, vitaminC: 6.6, vitaminA: 326
+            },
+            'lemon': {
+                name: 'Lemon (raw)',
+                calories: 29, protein: 1.1, carbs: 9.3, fat: 0.3, fiber: 2.8,
+                calcium: 26, iron: 0.6, vitaminC: 53.0, vitaminA: 22
+            },
+
+            // More Grains
+            'pasta': {
+                name: 'Pasta (white, cooked)',
+                calories: 158, protein: 5.8, carbs: 30.9, fat: 0.9, fiber: 1.8,
+                calcium: 7, iron: 0.5, vitaminC: 0, vitaminA: 0
+            },
+            'whole wheat pasta': {
+                name: 'Whole Wheat Pasta (cooked)',
+                calories: 149, protein: 5.5, carbs: 28.6, fat: 1.1, fiber: 3.9,
+                calcium: 21, iron: 1.1, vitaminC: 0, vitaminA: 0
+            },
+            'tortilla': {
+                name: 'Tortilla (flour)',
+                calories: 312, protein: 8.0, carbs: 51.0, fat: 7.8, fiber: 3.0,
+                calcium: 98, iron: 3.4, vitaminC: 0, vitaminA: 0
+            },
+            'bagel': {
+                name: 'Bagel (plain)',
+                calories: 270, protein: 10.5, carbs: 52.1, fat: 1.7, fiber: 2.3,
+                calcium: 59, iron: 2.7, vitaminC: 0, vitaminA: 0
+            },
+            'granola': {
+                name: 'Granola (plain)',
+                calories: 471, protein: 10.0, carbs: 64.4, fat: 20.3, fiber: 5.3,
+                calcium: 47, iron: 3.5, vitaminC: 0.6, vitaminA: 0
+            },
+
+            // More Dairy & Fats
+            'butter': {
+                name: 'Butter (unsalted)',
+                calories: 717, protein: 0.9, carbs: 0.1, fat: 81.1, fiber: 0,
+                calcium: 24, iron: 0.02, vitaminC: 0, vitaminA: 2499
+            },
+            'cream cheese': {
+                name: 'Cream Cheese',
+                calories: 342, protein: 5.9, carbs: 4.1, fat: 34.2, fiber: 0,
+                calcium: 97, iron: 0.5, vitaminC: 0, vitaminA: 1111
+            },
+            'sour cream': {
+                name: 'Sour Cream',
+                calories: 193, protein: 2.9, carbs: 4.6, fat: 19.4, fiber: 0,
+                calcium: 100, iron: 0.06, vitaminC: 0.6, vitaminA: 618
+            },
+            'peanut butter': {
+                name: 'Peanut Butter (smooth)',
+                calories: 588, protein: 25.1, carbs: 20.0, fat: 50.4, fiber: 6.0,
+                calcium: 49, iron: 1.7, vitaminC: 0, vitaminA: 0
+            },
+
+            // More Nuts & Seeds
+            'cashews': {
+                name: 'Cashews (raw)',
+                calories: 553, protein: 18.2, carbs: 30.2, fat: 43.8, fiber: 3.3,
+                calcium: 37, iron: 6.7, vitaminC: 0.5, vitaminA: 0
+            },
+            'peanuts': {
+                name: 'Peanuts (dry roasted)',
+                calories: 585, protein: 23.7, carbs: 21.5, fat: 49.7, fiber: 8.4,
+                calcium: 54, iron: 1.6, vitaminC: 0, vitaminA: 0
+            },
+            'sunflower seeds': {
+                name: 'Sunflower Seeds (dry roasted)',
+                calories: 582, protein: 19.3, carbs: 24.1, fat: 51.5, fiber: 11.5,
+                calcium: 70, iron: 3.8, vitaminC: 1.4, vitaminA: 4
+            },
+            'hemp seeds': {
+                name: 'Hemp Seeds (hulled)',
+                calories: 553, protein: 31.6, carbs: 8.7, fat: 48.8, fiber: 4.0,
+                calcium: 70, iron: 7.9, vitaminC: 0.5, vitaminA: 0
+            },
+
+            // Legumes
+            'kidney beans': {
+                name: 'Kidney Beans (cooked)',
+                calories: 127, protein: 8.7, carbs: 22.8, fat: 0.5, fiber: 7.4,
+                calcium: 35, iron: 2.9, vitaminC: 1.2, vitaminA: 0
+            },
+            'green lentils': {
+                name: 'Green Lentils (cooked)',
+                calories: 116, protein: 9.0, carbs: 20.1, fat: 0.4, fiber: 7.9,
+                calcium: 36, iron: 3.3, vitaminC: 1.5, vitaminA: 8
+            },
+
+            // Extras
+            'honey': {
+                name: 'Honey',
+                calories: 304, protein: 0.3, carbs: 82.4, fat: 0, fiber: 0.2,
+                calcium: 6, iron: 0.4, vitaminC: 0.5, vitaminA: 0
+            },
+            'dark chocolate': {
+                name: 'Dark Chocolate (70-85% cacao)',
+                calories: 598, protein: 7.8, carbs: 45.9, fat: 42.6, fiber: 10.9,
+                calcium: 73, iron: 11.9, vitaminC: 0, vitaminA: 39
+            },
+            'protein powder': {
+                name: 'Protein Powder (whey)',
+                calories: 375, protein: 78.1, carbs: 8.0, fat: 5.0, fiber: 0,
+                calcium: 300, iron: 1.0, vitaminC: 0, vitaminA: 0
             }
         };
 
         let currentRecipe = [];
+        let currentView = 'per-serving'; // 'per-serving' | 'total'
+
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('btnPerServing').classList.toggle('toggle-active', view === 'per-serving');
+            document.getElementById('btnTotal').classList.toggle('toggle-active', view === 'total');
+            calculateNutrition();
+        }
 
         // Unit conversion to grams
         const unitConversions = {
@@ -564,75 +910,81 @@
         function calculateNutrition() {
             const servings = parseInt(document.getElementById('servings').value) || 1;
             document.getElementById('totalServings').textContent = servings;
-            
+
             if (currentRecipe.length === 0) {
                 document.getElementById('macronutrients').innerHTML = '<p>No ingredients added</p>';
                 document.getElementById('micronutrients').innerHTML = '<p>No ingredients added</p>';
                 return;
             }
-            
-            // Calculate total nutrition
+
+            // Calculate total nutrition for the whole recipe
             const totalNutrition = {
                 calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0,
                 calcium: 0, iron: 0, vitaminC: 0, vitaminA: 0
             };
-            
+
             currentRecipe.forEach(ingredient => {
                 const food = foodDatabase[ingredient.food];
                 const ratio = ingredient.grams / 100; // nutrition data is per 100g
-                
                 Object.keys(totalNutrition).forEach(nutrient => {
                     totalNutrition[nutrient] += (food[nutrient] || 0) * ratio;
                 });
             });
-            
-            // Calculate per serving
-            const perServing = {};
+
+            // Choose values to display based on toggle
+            const isPerServing = currentView === 'per-serving';
+            const display = {};
             Object.keys(totalNutrition).forEach(nutrient => {
-                perServing[nutrient] = totalNutrition[nutrient] / servings;
+                display[nutrient] = isPerServing
+                    ? totalNutrition[nutrient] / servings
+                    : totalNutrition[nutrient];
             });
-            
+
+            const viewLabel = isPerServing ? `Per Serving (of ${servings})` : 'Total Recipe';
+
             // Display macronutrients
             document.getElementById('macronutrients').innerHTML = `
+                <div class="view-label">${viewLabel}</div>
                 <div class="macro-item">
                     <span>🔥 Calories</span>
-                    <span class="value">${Math.round(perServing.calories)}</span>
+                    <span class="value">${Math.round(display.calories)}</span>
                 </div>
                 <div class="macro-item">
                     <span>🥩 Protein</span>
-                    <span class="value">${perServing.protein.toFixed(1)}g</span>
+                    <span class="value">${display.protein.toFixed(1)}g</span>
                 </div>
                 <div class="macro-item">
                     <span>🍞 Carbohydrates</span>
-                    <span class="value">${perServing.carbs.toFixed(1)}g</span>
+                    <span class="value">${display.carbs.toFixed(1)}g</span>
                 </div>
                 <div class="macro-item">
                     <span>🥑 Fat</span>
-                    <span class="value">${perServing.fat.toFixed(1)}g</span>
+                    <span class="value">${display.fat.toFixed(1)}g</span>
                 </div>
                 <div class="macro-item">
                     <span>🌾 Fiber</span>
-                    <span class="value">${perServing.fiber.toFixed(1)}g</span>
+                    <span class="value">${display.fiber.toFixed(1)}g</span>
                 </div>
             `;
-            
+
             // Display micronutrients
             document.getElementById('micronutrients').innerHTML = `
+                <div class="view-label">${viewLabel}</div>
                 <div class="micro-item">
                     <span>🦴 Calcium</span>
-                    <span class="value">${Math.round(perServing.calcium)}mg</span>
+                    <span class="value">${Math.round(display.calcium)}mg</span>
                 </div>
                 <div class="micro-item">
                     <span>🩸 Iron</span>
-                    <span class="value">${perServing.iron.toFixed(1)}mg</span>
+                    <span class="value">${display.iron.toFixed(1)}mg</span>
                 </div>
                 <div class="micro-item">
                     <span>🍊 Vitamin C</span>
-                    <span class="value">${Math.round(perServing.vitaminC)}mg</span>
+                    <span class="value">${Math.round(display.vitaminC)}mg</span>
                 </div>
                 <div class="micro-item">
                     <span>👁️ Vitamin A</span>
-                    <span class="value">${Math.round(perServing.vitaminA)}IU</span>
+                    <span class="value">${Math.round(display.vitaminA)}IU</span>
                 </div>
             `;
         }
