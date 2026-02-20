@@ -297,6 +297,149 @@
         .serving-label {
             font-weight: 500;
         }
+
+        /* Settings panel */
+        .header {
+            position: relative;
+        }
+
+        #settingsToggle {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.5);
+            color: white;
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+
+        #settingsToggle:hover {
+            background: rgba(255,255,255,0.35);
+            transform: translateY(-50%);
+        }
+
+        .settings-panel {
+            background: #f0f4f8;
+            border-bottom: 1px solid #ddd;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .settings-panel.open {
+            max-height: 200px;
+            padding: 15px 30px;
+        }
+
+        .settings-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .settings-content label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .settings-content input[type="password"] {
+            flex: 1;
+            min-width: 200px;
+            max-width: 400px;
+        }
+
+        #apiKeyStatus {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .settings-help {
+            font-size: 12px;
+            color: #666;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .settings-help a {
+            color: #4facfe;
+            text-decoration: none;
+        }
+
+        .settings-help a:hover {
+            text-decoration: underline;
+        }
+
+        /* Enhanced search dropdown */
+        .search-results {
+            max-height: 350px;
+        }
+
+        .search-group-label {
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+            background: #f5f5f5;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+        }
+
+        .search-loading {
+            padding: 10px;
+            color: #999;
+            font-style: italic;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .search-result-usda {
+            padding-left: 14px;
+        }
+
+        .usda-badge {
+            display: inline-block;
+            background: #e8f5e8;
+            color: #2e7d32;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 6px;
+            vertical-align: middle;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        @media (max-width: 768px) {
+            #settingsToggle {
+                position: static;
+                transform: none;
+                margin-top: 10px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+                width: fit-content;
+            }
+
+            .settings-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .settings-content input[type="password"] {
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -304,8 +447,26 @@
         <div class="header">
             <h1>🥗 Personal Nutrition Calculator</h1>
             <p>Enter your recipe ingredients and get detailed nutritional analysis per serving</p>
+            <button id="settingsToggle" class="btn btn-small" onclick="toggleSettings()">Settings</button>
         </div>
-        
+
+        <div id="settingsPanel" class="settings-panel">
+            <div class="settings-content">
+                <label for="apiKeyInput">USDA API Key:</label>
+                <input type="password" id="apiKeyInput"
+                       placeholder="Enter your USDA FoodData Central API key"
+                       autocomplete="off">
+                <button class="btn btn-small" onclick="saveApiKey()">Save</button>
+                <button class="btn btn-small btn-danger" onclick="clearApiKey()">Clear</button>
+                <span id="apiKeyStatus"></span>
+                <p class="settings-help">
+                    Get a free key at
+                    <a href="https://fdc.nal.usda.gov/api-key-signup/" target="_blank" rel="noopener">fdc.nal.usda.gov</a>
+                    — unlocks live search across 300,000+ USDA foods. Your key is stored in this browser only.
+                </p>
+            </div>
+        </div>
+
         <div class="main-content">
             <div class="recipe-section">
                 <h2 class="section-title">Recipe Builder</h2>
@@ -824,31 +985,230 @@
             'piece': 100 // default weight for pieces
         };
 
+        // ── USDA FoodData Central API integration ──────────────────────────
+        const USDA_API_BASE = 'https://api.nal.usda.gov/fdc/v1/foods/search';
+
+        // Maps USDA nutrient IDs to our internal field names (all values per 100g)
+        const USDA_NUTRIENT_MAP = {
+            1008: 'calories',
+            1003: 'protein',
+            1005: 'carbs',
+            1004: 'fat',
+            1079: 'fiber',
+            1087: 'calcium',
+            1089: 'iron',
+            1162: 'vitaminC',
+            1104: 'vitaminA'
+        };
+
+        // Prefer generic/scientific data types over branded products
+        const USDA_PREFERRED_DATATYPES = ['SR Legacy', 'Survey (FNDDS)', 'Foundation'];
+
+        let currentSearchController = null; // AbortController for in-flight API requests
+        let cachedUsdaResults = [];         // Latest API response foods[] for click handling
+
+        function debounce(fn, delay) {
+            let timeoutId;
+            return function(...args) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => fn.apply(this, args), delay);
+            };
+        }
+
+        function getApiKey() {
+            return localStorage.getItem('usda_api_key') || '';
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (!key) {
+                showApiKeyStatus('Please enter a key.', '#e74c3c');
+                return;
+            }
+            localStorage.setItem('usda_api_key', key);
+            document.getElementById('apiKeyInput').value = '';
+            showApiKeyStatus('Key saved!', '#27ae60');
+        }
+
+        function clearApiKey() {
+            localStorage.removeItem('usda_api_key');
+            document.getElementById('apiKeyInput').value = '';
+            showApiKeyStatus('Key cleared.', '#e74c3c');
+        }
+
+        function showApiKeyStatus(msg, color) {
+            const el = document.getElementById('apiKeyStatus');
+            el.textContent = msg;
+            el.style.color = color;
+            setTimeout(() => { el.textContent = ''; }, 3000);
+        }
+
+        function toggleSettings() {
+            document.getElementById('settingsPanel').classList.toggle('open');
+        }
+
+        function initSettings() {
+            if (getApiKey()) {
+                const el = document.getElementById('apiKeyStatus');
+                el.textContent = 'API key configured.';
+                el.style.color = '#27ae60';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function mapUsdaNutrients(usdaFood) {
+            const nutrition = {
+                name: usdaFood.description,
+                calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0,
+                calcium: 0, iron: 0, vitaminC: 0, vitaminA: 0
+            };
+            if (usdaFood.foodNutrients && Array.isArray(usdaFood.foodNutrients)) {
+                usdaFood.foodNutrients.forEach(fn => {
+                    const field = USDA_NUTRIENT_MAP[fn.nutrientId];
+                    if (field && typeof fn.value === 'number') {
+                        nutrition[field] = fn.value;
+                    }
+                });
+            }
+            return nutrition;
+        }
+
+        function removeUsdaResults() {
+            const sr = document.getElementById('searchResults');
+            sr.querySelectorAll('.search-group-label, .search-loading, .search-result-usda')
+              .forEach(el => el.remove());
+        }
+
+        async function searchUsdaApi(query) {
+            const apiKey = getApiKey();
+            if (!apiKey) return;
+
+            if (currentSearchController) currentSearchController.abort();
+            currentSearchController = new AbortController();
+
+            const sr = document.getElementById('searchResults');
+
+            // Show loading indicator under static results
+            removeUsdaResults();
+            const groupHeader = document.createElement('div');
+            groupHeader.className = 'search-group-label';
+            groupHeader.textContent = 'USDA Database';
+            sr.appendChild(groupHeader);
+
+            const loadingEl = document.createElement('div');
+            loadingEl.className = 'search-loading';
+            loadingEl.textContent = 'Searching USDA database...';
+            sr.appendChild(loadingEl);
+            sr.style.display = 'block';
+
+            try {
+                const url = `${USDA_API_BASE}?api_key=${encodeURIComponent(apiKey)}&query=${encodeURIComponent(query)}&pageSize=20`;
+                const response = await fetch(url, { signal: currentSearchController.signal });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+                removeUsdaResults();
+
+                if (!data.foods || data.foods.length === 0) return;
+
+                // Prefer non-branded data types; fall back to all if none match
+                let foods = data.foods.filter(f => USDA_PREFERRED_DATATYPES.includes(f.dataType));
+                if (foods.length === 0) foods = data.foods;
+
+                // Keep only foods that have some nutrient data
+                foods = foods.filter(f => f.foodNutrients && f.foodNutrients.length > 0);
+
+                // Remove duplicates of static DB entries
+                const staticKeys = new Set(Object.keys(foodDatabase));
+                foods = foods.filter(f => !staticKeys.has(f.description.toLowerCase()));
+
+                foods = foods.slice(0, 8);
+                if (foods.length === 0) return;
+
+                cachedUsdaResults = foods;
+
+                const header = document.createElement('div');
+                header.className = 'search-group-label';
+                header.textContent = 'USDA Database';
+                sr.appendChild(header);
+
+                foods.forEach((food, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'search-result search-result-usda';
+                    div.onclick = () => selectUsdaFood(index);
+                    div.innerHTML = `${escapeHtml(food.description)} <span class="usda-badge">USDA</span>`;
+                    sr.appendChild(div);
+                });
+
+                sr.style.display = 'block';
+
+            } catch (err) {
+                removeUsdaResults();
+                if (err.name !== 'AbortError') {
+                    console.warn('USDA API search failed:', err.message);
+                }
+            }
+        }
+
+        function selectUsdaFood(index) {
+            const usdaFood = cachedUsdaResults[index];
+            if (!usdaFood) return;
+
+            const foodKey = 'usda_' + usdaFood.fdcId;
+            foodDatabase[foodKey] = mapUsdaNutrients(usdaFood);
+
+            document.getElementById('foodSearch').value = usdaFood.description;
+            document.getElementById('foodSearch').dataset.foodKey = foodKey;
+            document.getElementById('searchResults').style.display = 'none';
+        }
+        // ──────────────────────────────────────────────────────────────────
+
         function setupFoodSearch() {
             const searchInput = document.getElementById('foodSearch');
             const searchResults = document.getElementById('searchResults');
-            
+            const debouncedApiSearch = debounce(searchUsdaApi, 300);
+
             searchInput.addEventListener('input', function() {
-                const query = this.value.toLowerCase();
+                const query = this.value.toLowerCase().trim();
+
                 if (query.length < 2) {
                     searchResults.style.display = 'none';
+                    searchResults.innerHTML = '';
+                    if (currentSearchController) {
+                        currentSearchController.abort();
+                        currentSearchController = null;
+                    }
                     return;
                 }
-                
-                const matches = Object.keys(foodDatabase).filter(food => 
-                    food.toLowerCase().includes(query)
-                ).slice(0, 8);
-                
-                if (matches.length > 0) {
-                    searchResults.innerHTML = matches.map(food => 
+
+                // Phase 1: Immediate static database results (skip injected usda_ keys)
+                const staticMatches = Object.keys(foodDatabase)
+                    .filter(food => !food.startsWith('usda_') && food.includes(query))
+                    .slice(0, 5);
+
+                let html = '';
+                if (staticMatches.length > 0) {
+                    html += '<div class="search-group-label">Local Database</div>';
+                    html += staticMatches.map(food =>
                         `<div class="search-result" onclick="selectFood('${food}')">${foodDatabase[food].name}</div>`
                     ).join('');
-                    searchResults.style.display = 'block';
-                } else {
-                    searchResults.style.display = 'none';
+                }
+
+                searchResults.innerHTML = html;
+                searchResults.style.display = (html || getApiKey()) ? 'block' : 'none';
+
+                // Phase 2: Debounced USDA API search (appends below static results)
+                if (getApiKey()) {
+                    debouncedApiSearch(query);
                 }
             });
-            
+
             // Hide results when clicking outside
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.food-search')) {
@@ -1004,6 +1364,7 @@
         // Initialize the app
         setupFoodSearch();
         calculateNutrition();
+        initSettings();
     </script>
 </body>
 </html>
